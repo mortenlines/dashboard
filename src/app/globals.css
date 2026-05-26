@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* Tailwind dark variant keyed to data-theme="dark" on <html>. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Tokens exposed as utility classes (bg-bg, text-muted, border-border, …). */
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+  --color-accent: var(--accent);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, "JetBrains Mono", monospace;
+}
+
+/* Light is the default — also applied explicitly via [data-theme="light"]. */
+:root,
+[data-theme="light"] {
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-hover: #F7F7F4;
+  --border: rgba(0, 0, 0, 0.06);
+  --border-hover: rgba(0, 0, 0, 0.12);
+  --text: #18181B;
+  --text-muted: #71717A;
+  --text-subtle: #A1A1AA;
+  --accent: #18181B;
+  --positive: #16A34A;
+  --negative: #DC2626;
+  --aurora-opacity: 0;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0A0A0B;
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.14);
+  --text: #FAFAFA;
+  --text-muted: #A1A1AA;
+  --text-subtle: #71717A;
+  --accent: #FAFAFA;
+  --positive: #4ADE80;
+  --negative: #F87171;
+  --aurora-opacity: 1;
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle aurora glow — only visible in dark mode (via --aurora-opacity). */
+.aurora {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--aurora-opacity);
+  background:
+    radial-gradient(ellipse 70% 45% at 25% -10%, rgba(91, 124, 255, 0.16), transparent 60%),
+    radial-gradient(ellipse 55% 35% at 78% -10%, rgba(168, 85, 247, 0.10), transparent 60%);
+  transition: opacity 0.4s ease;
+}
+
+/* In dark mode, give cards a hint of frosted glass. */
+[data-theme="dark"] .card-glass {
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+/* Native <dialog> styling */
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+dialog[open] {
+  animation: dialog-pop 160ms ease-out;
+}
+@keyframes dialog-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
