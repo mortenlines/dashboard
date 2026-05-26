@@ -54,7 +54,21 @@ The key is read only in route handlers, so it never reaches the browser.
 | **Date** | None | Today's weekday + date |
 | **Year progress** | Show months / days / hours (independent checkboxes, any combination including none) | Percent + bar always; selected metrics shown below |
 | **Stock** | Ticker symbol + update interval (30s minimum) | Symbol verified against Finnhub before save. Shows last-fetched price + change %, plus a "Updated HH:MM:SS" timestamp; refreshes are subtle so the price never flickers to empty. |
-| **Weather** | None (auto-location) | Asks the browser for your location, then fetches forecasts from yr.no. Small = current conditions; medium = current + next 2 days (high/low + condition). Refreshes every 10 minutes. |
+| **Weather** | Show feels-like / wind / rain / UV (four independent toggles) | Asks the browser for your location, then fetches forecasts from yr.no. Small = current conditions; medium = current + next 2 days (high/low + condition). Refreshes every 10 minutes. Spans two grid rows when two or more stats are enabled — see [Layout and card sizing](#layout-and-card-sizing). |
+
+### Layout and card sizing
+
+The grid is a 4-column bento on desktop (1 column on mobile, 2 on tablet). Each card declares its column span via its `size`: `sm` is one column, `md` is two, `lg` is the full row. Row heights are implicit — every cell in a row stretches to the tallest card in that row.
+
+That implicit sizing breaks down when one card's content grows much taller than its neighbours. The expanded **Weather** card is the motivating case: with all four stats enabled it's more than twice the height of a **Stock** card, and the default behaviour would stretch every other card sharing its row to match.
+
+To handle that, `CardDefinition` exposes an optional `rowSpan(config, size) => 1 | 2` hook. A card returns `2` when it knows it might be tall. The grid gives that card two row tracks instead of one, so its row-mates stay short and the tall card ends up roughly twice as tall as a normal small card — which is exactly the shape we want.
+
+Today only **Weather** uses the hook: it returns `2` when at least two of its four stat toggles (feels-like, wind, rain, UV) are enabled. Any future card whose content can outgrow a single row can adopt the same pattern by adding `rowSpan` to its definition; nothing else needs to change.
+
+**Ordering consequence.** When a card claims two row tracks, it opens an empty slot somewhere in the row it would otherwise have shared. The grid has `grid-auto-flow: dense` so the *next* small card in the saved list slides up and fills that hole. The tall card itself never moves — it's already placed. Net effect: no visible gaps, the per-row height stays sensible, and the saved card order is unchanged.
+
+The one trade-off: with dense packing, a small card that comes later in the list can visually appear *before* the tall weather card on screen, even though keyboard tab order still follows the list. Worth keeping in mind when reordering by drag-and-drop — what looks "out of order" may simply be a card backfilling the hole the tall card opened up.
 
 ### Update intervals and the free tier
 
@@ -75,14 +89,14 @@ The hybrid approach is the standard pattern for dashboards: render the SSR-sensi
 ```
 src/
 ├── app/
-│   ├── globals.css                Tailwind v4 + design tokens (light/dark) + <dialog> styling
+│   ├── globals.css                Tailwind v4 + design tokens (light/dark) + <dialog> centering & animation
 │   ├── layout.tsx                 Root layout: fonts, theme cookie, no-flash script, <Providers>
 │   ├── page.tsx                   Server component: greeting + add button + theme + grid
 │   └── api/
 │       ├── stock/route.ts         GET quote (proxy to Finnhub, 15s in-memory cache)
 │       └── symbols/verify/route.ts GET symbol verification (used by stock config form)
 ├── cards/
-│   ├── types.ts                   CardDefinition, CardInstance, CardSize, ConfigForm props…
+│   ├── types.ts                   CardDefinition (incl. optional rowSpan hook), CardInstance, CardSize, ConfigForm props…
 │   ├── registry.ts                Central list of available card types
 │   ├── clock/
 │   │   ├── card.ts                Definition (default config, sizes, Component, ConfigForm, labelFor)
@@ -96,13 +110,18 @@ src/
 │   │   ├── card.ts                Definition (3 boolean toggles)
 │   │   ├── YearProgressCard.tsx
 │   │   └── YearProgressConfigForm.tsx
-│   └── stock/
-│       ├── card.ts                Definition (includes validateConfig calling /api/symbols/verify)
-│       ├── StockCard.tsx          Client component: polls /api/stock, SWR display, timestamp
-│       └── StockConfigForm.tsx
+│   ├── stock/
+│   │   ├── card.ts                Definition (includes validateConfig calling /api/symbols/verify)
+│   │   ├── StockCard.tsx          Client component: polls /api/stock, SWR display, timestamp
+│   │   └── StockConfigForm.tsx
+│   └── weather/
+│       ├── card.ts                Definition (4 stat toggles, rowSpan=2 when 2+ enabled)
+│       ├── WeatherCard.tsx        Client component: geolocates, fetches yr.no, refreshes every 10 min
+│       ├── WeatherConfigForm.tsx
+│       └── WeatherIcons.tsx       Inline SVG icons keyed by yr.no symbol codes
 ├── components/
 │   ├── CardFrame.tsx              Sortable shell with hover controls (move / edit / remove)
-│   ├── CardGrid.tsx               DndContext + SortableContext + empty state
+│   ├── CardGrid.tsx               DndContext + SortableContext + empty state (uses grid-flow-dense to backfill row-spanning cards)
 │   ├── CardEditorDialog.tsx       Add/edit modal — type picker → size + ConfigForm → save
 │   ├── CardEditorProvider.tsx     Owns dialog state; exposes openAdd() / openEdit() via context
 │   ├── Providers.tsx              Wraps app in LayoutProvider + CardEditorProvider
@@ -204,6 +223,8 @@ src/
    ```
 
 That's it. The grid, dialog, drag-and-drop, persistence, and edit/remove controls all work without touching any other file.
+
+If your card's content can grow significantly taller than a typical `sm` card (think: many optional rows that the user toggles on), add an optional `rowSpan(config, size) => 1 | 2` to the definition. Returning `2` makes the card take two grid row tracks instead of one — see [Layout and card sizing](#layout-and-card-sizing) for the full mechanism. The **Weather** card is the reference implementation.
 
 ### Server cards vs. client cards
 
