@@ -5,6 +5,13 @@ export type CardSize = "sm" | "md" | "lg";
 
 export const ALL_SIZES: readonly CardSize[] = ["sm", "md", "lg"] as const;
 
+/**
+ * Vertical track span. Most cards take a single row; cards whose content can
+ * grow significantly (e.g. weather with multiple stats) can opt into spanning
+ * two rows so they don't stretch the smaller cards sharing their row.
+ */
+export type CardRowSpan = 1 | 2;
+
 export const SIZE_LABELS: Record<CardSize, string> = {
   sm: "Liten",
   md: "Middels",
@@ -62,6 +69,14 @@ export type CardDefinition<TConfig> = {
   validateConfig?: (config: TConfig) => Promise<CardValidationResult>;
   /** Compute the small label shown in the card frame. Defaults to `title`. */
   labelFor?: (config: TConfig) => string;
+  /**
+   * Optional: how many grid row tracks this instance should occupy. Defaults
+   * to 1. Cards return 2 when their content is tall enough that sharing a row
+   * with single-row cards would stretch the neighbours uncomfortably.
+   * The grid uses `grid-auto-flow: dense`, so the empty slot left behind by a
+   * row-spanning card is backfilled by the next eligible small card.
+   */
+  rowSpan?: (config: TConfig, size: CardSize) => CardRowSpan;
 };
 
 /**

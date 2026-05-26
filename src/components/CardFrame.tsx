@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { CSSProperties, ReactNode } from "react";
-import type { CardSize } from "@/cards/types";
+import type { CardRowSpan, CardSize } from "@/cards/types";
 import {
   IconChevronDown,
   IconChevronUp,
@@ -18,9 +18,20 @@ const SIZE_CLASSES: Record<CardSize, string> = {
   lg: "col-span-1 sm:col-span-2 lg:col-span-4",
 };
 
+const ROW_SPAN_CLASSES: Record<CardRowSpan, string> = {
+  1: "",
+  2: "row-span-2",
+};
+
 type CardFrameProps = {
   id: string;
   size: CardSize;
+  /**
+   * Number of grid row tracks the card should occupy. Defaults to 1.
+   * Tall cards (e.g. weather with multiple stats) ask for 2 so they don't
+   * stretch the single-row cards sharing their row.
+   */
+  rowSpan?: CardRowSpan;
   label?: string;
   /** Whether to show the edit button (true for cards with a config form). */
   editable: boolean;
@@ -36,6 +47,7 @@ type CardFrameProps = {
 export function CardFrame({
   id,
   size,
+  rowSpan = 1,
   label,
   editable,
   isFirst,
@@ -67,7 +79,9 @@ export function CardFrame({
       style={style}
       className={`group relative bg-surface border border-border rounded-2xl card-glass p-5 sm:p-6 flex flex-col gap-3 min-h-[120px] transition-colors hover:border-border-hover ${
         SIZE_CLASSES[size]
-      } ${isDragging ? "opacity-60 shadow-xl" : ""}`}
+      } ${ROW_SPAN_CLASSES[rowSpan]} ${
+        isDragging ? "opacity-60 shadow-xl" : ""
+      }`}
     >
       {/* Controls — visible on hover/focus-within. */}
       <div

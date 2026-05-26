@@ -93,16 +93,33 @@ dialog::backdrop {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
+/*
+ * Centering:
+ *   Tailwind v4's preflight resets `margin: 0` on `*`, which clobbers
+ *   the UA rule that centers modal dialogs (`dialog { margin: auto }`).
+ *   Set `inset: 0` and `margin: auto` explicitly so we don't depend on
+ *   UA defaults surviving the reset.
+ *
+ * Animation:
+ *   `forwards` keeps the dialog in its end state once dialog-pop
+ *   finishes, so a re-evaluation of the rule never snaps back to the
+ *   `from` state. We animate opacity + translate only (no scale) so
+ *   the worst-case re-trigger is a small vertical nudge, not a
+ *   perceived shrink — the dialog's backdrop-filter (dark mode) makes
+ *   any transient repaint extra visible.
+ */
 dialog[open] {
-  animation: dialog-pop 160ms ease-out;
+  margin: auto;
+  inset: 0;
+  animation: dialog-pop 160ms ease-out forwards;
 }
 @keyframes dialog-pop {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }

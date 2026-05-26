@@ -56,7 +56,13 @@ export function CardGrid() {
         items={cards.map((c) => c.id)}
         strategy={rectSortingStrategy}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/*
+         * `grid-flow-dense` lets later small cards backfill the slot a
+         * row-spanning card (e.g. an expanded weather card) skipped, so we
+         * don't leave visible holes in the layout. Card data order is
+         * unchanged — only the visual placement adapts.
+         */}
+        <div className="grid grid-flow-dense grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {cards.map((card, index) => (
             <CardRow
               key={card.id}
@@ -115,11 +121,17 @@ function CardRow({
   // Show the Edit button when there's anything meaningful to change —
   // either a config form, or more than one allowed size.
   const editable = Boolean(definition.ConfigForm) || allowedSizes.length > 1;
+  // Cards with growable content (e.g. weather with many stats) opt into
+  // spanning a second row so they don't stretch their row-mates.
+  const rowSpan = definition.rowSpan
+    ? definition.rowSpan(card.config, card.size)
+    : 1;
 
   return (
     <CardFrame
       id={card.id}
       size={card.size}
+      rowSpan={rowSpan}
       label={label}
       editable={editable}
       isFirst={isFirst}
