@@ -87,6 +87,17 @@ body {
   -webkit-backdrop-filter: blur(12px) saturate(140%);
 }
 
+/*
+ * The shared --surface token is intentionally near-transparent so on-page
+ * cards read as frosted glass. A modal needs to be legible against whatever
+ * sits behind it, so the dialog gets its own opaque surface (the page-blur
+ * from card-glass still applies on top). Light mode --surface is already
+ * opaque, so only dark mode needs an override.
+ */
+[data-theme="dark"] dialog {
+  background: #1A1A1D;
+}
+
 /* Native <dialog> styling */
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.45);
