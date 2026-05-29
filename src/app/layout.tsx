@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { cookies } from "next/headers";
@@ -12,6 +12,14 @@ const themeScript = `(function(){try{var m=document.cookie.match(/(?:^|; )theme=
 export const metadata: Metadata = {
   title: "Startpage",
   description: "Your personal start page on the internet.",
+};
+
+// Explicit viewport export is the Next.js 13+ way to set the viewport meta.
+// `width=device-width, initial-scale=1` prevents iOS Safari from auto-zooming
+// and ensures the layout uses CSS pixels, not the device's physical pixels.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default async function RootLayout({

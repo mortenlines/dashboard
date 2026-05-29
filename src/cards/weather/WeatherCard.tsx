@@ -263,14 +263,14 @@ function StatsGrid({
   const stats = allStats.filter((s) => config[s.key]);
   if (stats.length === 0) return null;
 
-  // sm: stack vertically (the card is narrow).
-  // md/lg: spread horizontally — justify-between distributes the available
-  // width between the stats so they always have breathing room regardless of
-  // how wide each individual label/value happens to be.
+  // On narrow viewports (mobile) always stack vertically regardless of the
+  // card's configured size — a medium/large card still renders in a single
+  // column on mobile, so horizontal stats would be cramped.
+  // At sm+ (≥640 px) spread them horizontally when the card is md or lg.
   const layoutClasses =
     size === "sm"
       ? "flex flex-col gap-2"
-      : "flex flex-row flex-wrap justify-between gap-x-6 gap-y-3";
+      : "flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between sm:gap-x-6 sm:gap-y-3";
 
   return (
     <div className={`mt-3 pt-3 border-t border-border ${layoutClasses}`}>

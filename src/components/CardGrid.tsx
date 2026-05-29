@@ -4,6 +4,7 @@ import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCenter,
   useSensor,
   useSensors,
@@ -23,10 +24,16 @@ import { ALL_SIZES, type CardInstance } from "@/cards/types";
 export function CardGrid() {
   const { cards, hydrated, reorder } = useLayout();
 
-  // Pointer needs a small drag distance before it commits — that way clicks on
-  // the edit/remove/arrow buttons don't accidentally start a drag.
+  // PointerSensor handles mouse and stylus; distance constraint prevents clicks
+  // from accidentally starting a drag.
+  // TouchSensor handles finger input on iOS/Android; delay+tolerance lets the
+  // browser distinguish a tap or scroll from an intentional drag before we
+  // take over touch handling.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 8 },
+    }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
